@@ -4,7 +4,7 @@ const quotes = [
     { text: "In the middle of every difficulty lies opportunity.", category: "Inspiration" }
 ];
 
-function showRandomQuote() {
+function createAddQuoteForm() {
     if (quotes.length === 0) {
         document.getElementById("quoteDisplay").innerHTML = "<p>No quotes available.</p>";
         return;
@@ -36,6 +36,6 @@ function addQuote() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("newQuote").addEventListener("click", showRandomQuote);
-    showRandomQuote(); 
+    document.getElementById("newQuote").addEventListener("click", createAddQuoteForm);
+    createAddQuoteForm(); 
 });
