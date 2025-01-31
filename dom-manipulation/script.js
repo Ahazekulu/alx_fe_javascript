@@ -1,8 +1,11 @@
+
 const quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
     { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", category: "Success" },
     { text: "In the middle of every difficulty lies opportunity.", category: "Inspiration" }
 ];
+
+const API_URL = "https://jsonplaceholder.typicode.com/posts";
 
 function showRandomQuote() {
     const selectedCategory = localStorage.getItem("selectedCategory") || "all";
@@ -26,11 +29,16 @@ function createAddQuoteForm() {
         <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
         <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
         <button id="addQuoteButton">Add Quote</button>
+        <button id="exportQuotes">Export Quotes</button>
+        <input type="file" id="importQuotes" accept="application/json">
     `;
     document.body.appendChild(formContainer);
     
     document.getElementById("addQuoteButton").addEventListener("click", addQuote);
+    document.getElementById("exportQuotes").addEventListener("click", exportToJsonFile);
+    document.getElementById("importQuotes").addEventListener("change", importFromJsonFile);
 }
+
 
 function addQuote() {
     const quoteText = document.getElementById("newQuoteText").value.trim();
@@ -46,12 +54,55 @@ function addQuote() {
     localStorage.setItem("quotes", JSON.stringify(quotes));
     populateCategories();
 
-    document.getElementById("newQuoteText").value = "";
-    document.getElementById("newQuoteCategory").value = "";
 
-    // Show the newly added quote immediately
     document.getElementById("quoteDisplay").innerHTML = `<p>"${newQuote.text}"</p>
                                                           <p><strong>Category:</strong> ${newQuote.category}</p>`;
+}
+
+
+function exportToJsonFile() {
+    const dataStr = JSON.stringify(quotes, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "quotes.json";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+
+function importFromJsonFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const importedQuotes = JSON.parse(e.target.result);
+        quotes.push(...importedQuotes);
+        localStorage.setItem("quotes", JSON.stringify(quotes));
+        populateCategories();
+        showRandomQuote();
+    };
+    reader.readAsText(file);
+}
+
+
+async function fetchQuotesFromServer() {
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        quotes.push(...data.map(post => ({ text: post.body, category: "Server" })));
+        localStorage.setItem("quotes", JSON.stringify(quotes));
+        populateCategories();
+    } catch (error) {
+        console.error("Error fetching quotes from server:", error);
+    }
+}
+
+
+function syncQuotes() {
+    setInterval(fetchQuotesFromServer, 60000);
 }
 
 function populateCategories() {
@@ -69,6 +120,7 @@ function populateCategories() {
     categoryFilter.value = localStorage.getItem("selectedCategory") || "all";
 }
 
+
 function filterQuotes() {
     const selectedCategory = document.getElementById("categoryFilter").value;
     localStorage.setItem("selectedCategory", selectedCategory);
@@ -78,7 +130,8 @@ function filterQuotes() {
 document.addEventListener("DOMContentLoaded", () => {
     document.body.insertAdjacentHTML("beforeend", '<select id="categoryFilter" onchange="filterQuotes()"></select>');
     document.getElementById("newQuote").addEventListener("click", showRandomQuote);
-    createAddQuoteForm(); // Create the form dynamically
-    populateCategories(); // Populate categories dropdown
-    showRandomQuote(); // Show an initial random quote on page load
+    createAddQuoteForm(); 
+    populateCategories(); 
+    showRandomQuote(); 
+    syncQuotes(); 
 });
