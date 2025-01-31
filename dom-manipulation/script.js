@@ -77,9 +77,16 @@ function addQuote() {
 }
 
 function showRandomQuote() {
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    const randomQuote = quotes[randomIndex];
-    document.getElementById("quoteDisplay").textContent = `"${randomQuote.text}" - ${randomQuote.category}`;
+    const selectedCategory = localStorage.getItem("selectedCategory") || "";
+    const filteredQuotes = selectedCategory ? quotes.filter(q => q.category === selectedCategory) : quotes;
+
+    if (filteredQuotes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+        const randomQuote = filteredQuotes[randomIndex];
+        document.getElementById("quoteDisplay").textContent = `"${randomQuote.text}" - ${randomQuote.category}`;
+    } else {
+        document.getElementById("quoteDisplay").textContent = "No quotes found for this category.";
+    }
 }
 
 function populateCategories() {
@@ -94,27 +101,16 @@ function populateCategories() {
     });
 
     // Restore the last selected category
-    const lastSelectedCategory = localStorage.getItem("lastSelectedCategory");
+    const lastSelectedCategory = localStorage.getItem("selectedCategory");
     if (lastSelectedCategory) {
         categoryFilter.value = lastSelectedCategory;
     }
 }
 
 function filterQuotes() {
-    const category = document.getElementById("categoryFilter").value;
-    const filteredQuotes = quotes.filter(q => q.category === category || category === "");
-    const quoteDisplay = document.getElementById("quoteDisplay");
-
-    if (filteredQuotes.length > 0) {
-        const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
-        const randomQuote = filteredQuotes[randomIndex];
-        quoteDisplay.textContent = `"${randomQuote.text}" - ${randomQuote.category}`;
-    } else {
-        quoteDisplay.textContent = "No quotes found for this category.";
-    }
-
-    // Save the selected category to local storage
-    localStorage.setItem("lastSelectedCategory", category);
+    const selectedCategory = document.getElementById("categoryFilter").value;
+    localStorage.setItem("selectedCategory", selectedCategory); // Save selected category to local storage
+    showRandomQuote(); // Update the displayed quote based on the selected category
 }
 
 document.addEventListener("DOMContentLoaded", () => {
