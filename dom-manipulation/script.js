@@ -87,3 +87,48 @@ function importFromJsonFile(event) {
     };
     reader.readAsText(file);
 }
+
+function showRandomQuote() {
+    const selectedCategory = localStorage.getItem("selectedCategory") || "all";
+    const filteredQuotes = selectedCategory === "all" ? quotes : quotes.filter(q => q.category === selectedCategory);
+    
+    if (filteredQuotes.length === 0) {
+        document.getElementById("quoteDisplay").innerHTML = "<p>No quotes available in this category.</p>";
+        return;
+    }
+    
+    const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+    document.getElementById("quoteDisplay").innerHTML = `<p>"${filteredQuotes[randomIndex].text}"</p>
+                                                           <p><strong>Category:</strong> ${filteredQuotes[randomIndex].category}</p>`;
+    sessionStorage.setItem("lastViewedQuote", JSON.stringify(filteredQuotes[randomIndex]));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.insertAdjacentHTML("beforeend", '<select id="categoryFilter" onchange="filterQuotes()"></select>');
+    document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
+    document.getElementById("importQuotes").addEventListener("change", importFromJsonFile);
+    populateCategories();
+    showRandomQuote();
+    syncQuotes();
+});
+
+function populateCategories() {
+    const categoryFilter = document.getElementById("categoryFilter");
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    
+    const categories = [...new Set(quotes.map(q => q.category))];
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
+    
+    categoryFilter.value = localStorage.getItem("selectedCategory") || "all";
+}
+
+function filterQuotes() {
+    const selectedCategory = document.getElementById("categoryFilter").value;
+    localStorage.setItem("selectedCategory", selectedCategory);
+    showRandomQuote();
+}
