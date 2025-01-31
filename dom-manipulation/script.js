@@ -41,7 +41,7 @@ function mergeQuotes(serverQuotes) {
     quotes.length = 0;
     quotes.push(...mergedQuotes);
     populateCategories();
-    showRandomQuote();
+    showRandomQuote(); // Ensure random quote is shown after merging
 }
 
 function syncQuotes() {
@@ -76,14 +76,21 @@ function addQuote() {
     showRandomQuote();
 }
 
+function showRandomQuote() {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    const randomQuote = quotes[randomIndex];
+    document.getElementById("quoteDisplay").textContent = `"${randomQuote.text}" - ${randomQuote.category}`;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     document.body.insertAdjacentHTML("beforeend", '<select id="categoryFilter" onchange="filterQuotes()"></select>');
+    document.body.insertAdjacentHTML("beforeend", '<div id="quoteDisplay"></div>');
     document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
     document.getElementById("importQuotes").addEventListener("change", importFromJsonFile);
     document.getElementById("newQuote").addEventListener("click", showRandomQuote);
     createAddQuoteForm();
     populateCategories();
-    showRandomQuote();
+    showRandomQuote(); // Show a random quote when page loads
     syncQuotes();
 });
 
@@ -99,4 +106,17 @@ function exportToJsonFile() {
 }
 
 function importFromJsonFile(event) {
-    const file = event.target
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function() {
+        const importedQuotes = JSON.parse(reader.result);
+        mergeQuotes(importedQuotes);
+    };
+    reader.readAsText(file);
+}
+
+function filterQuotes() {
+    const category = document.getElementById("categoryFilter").value;
+    const filteredQuotes = quotes.filter(q => q.category === category || category === "");
+
+}
