@@ -82,6 +82,41 @@ function showRandomQuote() {
     document.getElementById("quoteDisplay").textContent = `"${randomQuote.text}" - ${randomQuote.category}`;
 }
 
+function populateCategories() {
+    const categories = [...new Set(quotes.map(q => q.category))];
+    const categoryFilter = document.getElementById("categoryFilter");
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
+
+    // Restore the last selected category
+    const lastSelectedCategory = localStorage.getItem("lastSelectedCategory");
+    if (lastSelectedCategory) {
+        categoryFilter.value = lastSelectedCategory;
+    }
+}
+
+function filterQuotes() {
+    const category = document.getElementById("categoryFilter").value;
+    const filteredQuotes = quotes.filter(q => q.category === category || category === "");
+    const quoteDisplay = document.getElementById("quoteDisplay");
+
+    if (filteredQuotes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+        const randomQuote = filteredQuotes[randomIndex];
+        quoteDisplay.textContent = `"${randomQuote.text}" - ${randomQuote.category}`;
+    } else {
+        quoteDisplay.textContent = "No quotes found for this category.";
+    }
+
+    // Save the selected category to local storage
+    localStorage.setItem("lastSelectedCategory", category);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     document.body.insertAdjacentHTML("beforeend", '<select id="categoryFilter" onchange="filterQuotes()"></select>');
     document.body.insertAdjacentHTML("beforeend", '<div id="quoteDisplay"></div>');
@@ -113,10 +148,4 @@ function importFromJsonFile(event) {
         mergeQuotes(importedQuotes);
     };
     reader.readAsText(file);
-}
-
-function filterQuotes() {
-    const category = document.getElementById("categoryFilter").value;
-    const filteredQuotes = quotes.filter(q => q.category === category || category === "");
-
 }
