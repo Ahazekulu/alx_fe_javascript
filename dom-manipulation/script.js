@@ -12,6 +12,7 @@ async function fetchQuotesFromServer() {
         const data = await response.json();
         const serverQuotes = data.map(post => ({ text: post.body, category: "Server" }));
         mergeQuotes(serverQuotes);
+        console.log("Quotes synced with server!");
     } catch (error) {
         console.error("Error fetching quotes from server:", error);
     }
